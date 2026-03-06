@@ -1,0 +1,5 @@
+{
+  "name": "claude-gateway",
+  "description": "Claude Gateway hooks integration — auto-syncs hook rules from your gateway platform",
+  "version": "1.0.0"
+}
