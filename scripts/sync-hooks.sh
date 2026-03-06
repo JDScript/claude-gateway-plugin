@@ -13,20 +13,23 @@ if [ -z "$ANTHROPIC_AUTH_TOKEN" ] || [ -z "$ANTHROPIC_BASE_URL" ]; then
   exit 0
 fi
 
-# 3. Fetch user's hook rules (pre-formatted as hooks.json)
+# 3. Derive gateway base URL (strip trailing /api if present)
+GATEWAY_URL=$(echo "$ANTHROPIC_BASE_URL" | sed 's|/api$||')
+
+# 4. Fetch user's hook rules (pre-formatted as hooks.json)
 RESPONSE=$(curl -sf \
   -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN" \
-  "$ANTHROPIC_BASE_URL/api/hooks/my-rules" 2>/dev/null) || exit 0
+  "$GATEWAY_URL/api/hooks/my-rules" 2>/dev/null) || exit 0
 
-# 4. Validate response is JSON
+# 5. Validate response is JSON
 echo "$RESPONSE" | grep -q '"hooks"' || exit 0
 
-# 5. Compare with current hooks.json
+# 6. Compare with current hooks.json
 CURRENT=$(cat "$HOOKS_FILE" 2>/dev/null || echo "{}")
 if [ "$RESPONSE" = "$CURRENT" ]; then
   exit 0
 fi
 
-# 6. Write updated hooks.json
+# 7. Write updated hooks.json
 echo "$RESPONSE" > "$HOOKS_FILE"
 echo "Claude Gateway: Hook rules updated. Restart Claude Code to apply changes." >&2
