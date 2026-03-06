@@ -4,8 +4,11 @@ A Claude Code plugin that integrates with [Claude Gateway](https://github.com/jd
 
 ## Installation
 
-```sh
-curl -sL https://raw.githubusercontent.com/jdscript/claude-gateway-plugin/main/install.sh | sh
+In Claude Code, run:
+
+```
+/plugin marketplace add JDScript/claude-code-marketplace
+/plugin install claude-gateway
 ```
 
 ## Configuration
@@ -14,7 +17,7 @@ Set these environment variables in your shell profile (`~/.zshrc` or `~/.bashrc`
 
 ```sh
 export ANTHROPIC_AUTH_TOKEN=<your-api-key>
-export ANTHROPIC_BASE_URL=<your-gateway-url>
+export ANTHROPIC_BASE_URL=<your-gateway-url>/api
 ```
 
 ## How it works
@@ -26,6 +29,8 @@ export ANTHROPIC_BASE_URL=<your-gateway-url>
 
 ## Uninstall
 
-```sh
-rm -rf ~/.claude/plugins/claude-gateway
+In Claude Code, run:
+
+```
+/plugin uninstall claude-gateway
 ```
