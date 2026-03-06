@@ -13,6 +13,11 @@ else
   git clone "$REPO_URL" "$PLUGIN_DIR"
 fi
 
+# Ensure hooks.json exists (gitignored, generated from default)
+if [ ! -f "$PLUGIN_DIR/hooks/hooks.json" ]; then
+  cp "$PLUGIN_DIR/hooks/hooks.default.json" "$PLUGIN_DIR/hooks/hooks.json"
+fi
+
 echo ""
 echo "Claude Gateway plugin installed at: $PLUGIN_DIR"
 echo ""
