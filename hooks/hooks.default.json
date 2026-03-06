@@ -5,8 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/sync-hooks.sh",
-            "async": true
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/sync-hooks.sh"
           }
         ]
       }

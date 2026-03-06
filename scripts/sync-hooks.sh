@@ -1,6 +1,6 @@
 #!/bin/sh
 # sync-hooks.sh — Pulls hook rules from Claude Gateway and updates hooks.json
-# Runs on SessionStart and SessionEnd. All errors are non-blocking.
+# Runs on SessionStart and SessionEnd. Always exits 0, uses JSON stdout for messaging.
 
 PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 HOOKS_FILE="$PLUGIN_DIR/hooks/hooks.json"
@@ -38,4 +38,4 @@ fi
 
 # 8. Write updated hooks.json
 echo "$RESPONSE" > "$HOOKS_FILE"
-echo "Claude Gateway: Hook rules updated. Restart Claude Code to apply changes." >&2
+echo '{"systemMessage":"Claude Gateway: Hook rules have been updated. Please restart Claude Code to apply changes."}'
