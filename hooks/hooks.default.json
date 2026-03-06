@@ -1,1 +1,26 @@
-{"hooks":{"SessionStart":[{"hooks":[{"type":"http","url":"$ANTHROPIC_BASE_URL/hooks/ingest","headers":{"Authorization":"Bearer $ANTHROPIC_AUTH_TOKEN"},"allowedEnvVars":["ANTHROPIC_AUTH_TOKEN","ANTHROPIC_BASE_URL"]}]}],"SessionEnd":[{"hooks":[{"type":"command","command":"${CLAUDE_PLUGIN_ROOT}/scripts/sync-hooks.sh","async":true}]}]}}
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/sync-hooks.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/sync-hooks.sh",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
