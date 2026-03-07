@@ -1,5 +1,28 @@
 {
   "name": "claude-gateway",
   "description": "Claude Gateway hooks integration — auto-syncs hook rules from your gateway platform",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/sync-hooks.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/sync-hooks.sh",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
 }
