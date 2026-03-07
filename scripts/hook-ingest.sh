@@ -4,7 +4,8 @@
 # Reconnects automatically on 202 (still pending). Exits 0 on any terminal state
 # so Claude Code can handle the result natively.
 
-[ -z "$ANTHROPIC_AUTH_TOKEN" ] || [ -z "$ANTHROPIC_BASE_URL" ] && exit 0
+[ -z "$ANTHROPIC_AUTH_TOKEN" ] && exit 0
+[ -z "$ANTHROPIC_BASE_URL" ] && exit 0
 
 # Post event directly from stdin — avoids echo/printf mangling \n in JSON strings
 RESPONSE=$(curl -sf -X POST \
@@ -26,6 +27,8 @@ fi
 #   202 — still pending (re-poll immediately)
 #   408 — timed out (exit 0, Claude Code handles natively)
 #   other — error (exit 0 clean)
+TMPFILE=""
+trap 'rm -f "$TMPFILE"' EXIT INT TERM
 while true; do
   TMPFILE=$(mktemp)
   HTTP=$(curl -s --max-time 65 \
@@ -36,6 +39,9 @@ while true; do
   case "$HTTP" in
     200) cat "$TMPFILE"; rm -f "$TMPFILE"; exit 0 ;;
     202) rm -f "$TMPFILE" ;;            # still pending, loop immediately
-    *)   rm -f "$TMPFILE"; exit 0 ;;   # 408 timeout or error — exit clean
+    408) rm -f "$TMPFILE"; exit 0 ;;   # gateway timeout — exit clean
+    000) rm -f "$TMPFILE"; sleep 5 ;;  # curl network error — retry after pause
+    5*)  rm -f "$TMPFILE"; sleep 5 ;;  # server error — retry after pause
+    *)   rm -f "$TMPFILE"; exit 0 ;;   # other 4xx — exit clean
   esac
 done
