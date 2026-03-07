@@ -5,11 +5,8 @@
 
 [ -z "$ANTHROPIC_AUTH_TOKEN" ] || [ -z "$ANTHROPIC_BASE_URL" ] && exit 0
 
-# Read stdin into variable
-INPUT=$(cat)
-
-# Post event to ingest endpoint
-RESPONSE=$(echo "$INPUT" | curl -sf -X POST \
+# Post event directly from stdin — avoids echo/printf mangling \n in JSON strings
+RESPONSE=$(curl -sf -X POST \
   -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d @- \
