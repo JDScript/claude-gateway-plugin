@@ -1,7 +1,8 @@
 #!/bin/sh
 # hook-ingest.sh — Forwards hook event data to Claude Gateway ingest endpoint.
-# For PermissionRequest events, waits for a remote decision via SSE.
-# Reads event JSON from stdin, posts to the gateway. Always exits 0.
+# For PermissionRequest events, waits for a remote decision via long polling.
+# Reconnects automatically on 202 (still pending). Exits 0 on any terminal state
+# so Claude Code can handle the result natively.
 
 [ -z "$ANTHROPIC_AUTH_TOKEN" ] || [ -z "$ANTHROPIC_BASE_URL" ] && exit 0
 
@@ -13,19 +14,28 @@ RESPONSE=$(curl -sf -X POST \
   "$ANTHROPIC_BASE_URL/hooks/ingest" 2>/dev/null) || exit 0
 
 # Check if a decision is required (PermissionRequest)
-# Extract decisionId from JSON response — works without jq
-DECISION_ID=$(echo "$RESPONSE" | sed -n 's/.*"decisionId":"\([^"]*\)".*/\1/p')
+REQUEST_ID=$(printf '%s' "$RESPONSE" | sed -n 's/.*"requestId":"\([^"]*\)".*/\1/p')
 
-if [ -z "$DECISION_ID" ]; then
+if [ -z "$REQUEST_ID" ]; then
   exit 0
 fi
 
-# Stream SSE until we get a decision event
-curl -sfN \
-  -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN" \
-  "$ANTHROPIC_BASE_URL/hooks/decision/$DECISION_ID/stream" 2>/dev/null | \
-  while IFS= read -r line; do
-    case "$line" in
-      data:*) echo "${line#data:}"; exit 0 ;;
-    esac
-  done
+# Wait for decision via long polling.
+# Server holds connection up to 60s, returns:
+#   200 — decision ready (print and exit)
+#   202 — still pending (re-poll immediately)
+#   408 — timed out (exit 0, Claude Code handles natively)
+#   other — error (exit 0 clean)
+while true; do
+  TMPFILE=$(mktemp)
+  HTTP=$(curl -s --max-time 65 \
+    -o "$TMPFILE" \
+    -w "%{http_code}" \
+    -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN" \
+    "$ANTHROPIC_BASE_URL/hooks/decision/$REQUEST_ID" 2>/dev/null)
+  case "$HTTP" in
+    200) cat "$TMPFILE"; rm -f "$TMPFILE"; exit 0 ;;
+    202) rm -f "$TMPFILE" ;;            # still pending, loop immediately
+    *)   rm -f "$TMPFILE"; exit 0 ;;   # 408 timeout or error — exit clean
+  esac
+done
